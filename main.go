@@ -80,8 +80,11 @@ func (e *Exporter) GetToken() error {
 		log.Warn("No valid json")
 		return err
 	}
+	if tokenResp.Token == "" {
+		log.Fatal("No token!!! >:(")
+	}
 	e.Token = tokenResp.Token
-	log.Info("Got Token :)")
+	log.Info("Got Token :D")
 	return nil
 }
 
@@ -95,17 +98,17 @@ func (e *Exporter) Request() error {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", e.Token))
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Warn("Failed to build request")
+		log.Warn("Failed to build request", err)
 		return nil
 	}
 	rawLimit := res.Header.Get("RateLimit-Limit")
 	if rawLimit == "" {
 		log.Warn("Empty Header in Limits")
-		return fmt.Errorf("Empty Headers in Limits")
+		return fmt.Errorf("Empty Headers in Limits %v", res.Body)
 	}
 	rawRemaining := res.Header.Get("RateLimit-Remaining")
 	if rawRemaining == "" {
-		log.Warn("Empty Header in Remaining")
+		log.Warn("Empty Header in Remaining", res.Body)
 		return fmt.Errorf("Empty Headers in Remaining")
 	}
 	e.Limit, err = strconv.Atoi(strings.Split(rawLimit, ";")[0])
@@ -116,21 +119,23 @@ func (e *Exporter) Request() error {
 // RenewTokenEvery n hours
 func (e *Exporter) RenewTokenEvery(n time.Duration) {
 	go func() {
+	  for {
 		err := e.GetToken()
 		if err != nil {
 			log.Warn(err)
 		}
 		time.Sleep(n)
+	  }
 	}()
 }
 
 // RenewLimitValuesEvery n seconds
 func (e *Exporter) RenewLimitValuesEvery(n time.Duration) {
 	go func() {
+	  for {
 		err := e.Request()
 		if err != nil {
 			log.Warn(err)
-			return
 		}
 		limit.Set(
 			float64(e.Limit))
@@ -142,12 +147,13 @@ func (e *Exporter) RenewLimitValuesEvery(n time.Duration) {
 				e.Remaining,
 				e.Limit))
 		time.Sleep(n)
+	  }
 	}()
 }
 
 // Run the Exporter
 func (e *Exporter) Run() {
-	log.Info("Starting exporter on localhost:8080/metrics")
+	log.Info("Starting exporter on localhost:9696/metrics")
 	prometheus.MustRegister(limit)
 	prometheus.MustRegister(remaining)
 	e.RenewTokenEvery(2 * time.Hour)
@@ -155,7 +161,7 @@ func (e *Exporter) Run() {
 	e.RenewLimitValuesEvery(3 * time.Second)
 	http.Handle("/metrics", promhttp.Handler())
 	log.Info("Endpoint ready")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":9696", nil))
 }
 
 // Init the Exporter via options
@@ -166,16 +172,16 @@ func (e *Exporter) Init(lOpt int) *Exporter {
 		flag.StringVar(&e.Password, "password", "", "Your docker-login password")
 		flag.Parse()
 		if e.Username == "" || e.Password == "" {
-			log.Fatal("No flags specified")
-			return nil
+			log.Warn("No flags specified")
+			return e.Init(lOptConf)
 		}
 		return e
 	case lOptEnv:
-		loader := env.New("GRAFZAHL", nil)
-		err := loader.Load(&e)
+		loader := env.New("GRAFZAHL_", nil)
+		err := loader.Load(e)
 		if err != nil {
-			log.Warn("Could not read from env")
-			return e.Init(lOptConf)
+			log.Fatal("Could not read from env", err)
+			return nil
 		}
 		return e
 	case lOptConf:
@@ -187,17 +193,17 @@ func (e *Exporter) Init(lOpt int) *Exporter {
 				return e.Init(lOptFlag)
 			}
 		}
-		err = yaml.Unmarshal(data, &e)
+		err = yaml.Unmarshal(data, e)
 		if err != nil {
 			log.Warn("Could not read YAML", err)
-			return e.Init(lOptFlag)
+			return e.Init(lOptEnv)
 		}
 		return e
 	default:
-		return e.Init(lOptEnv)
+		return e.Init(lOptFlag)
 	}
 }
 
 func main() {
-	new(Exporter).Init(lOptEnv).Run()
+	new(Exporter).Init(lOptFlag).Run()
 }
