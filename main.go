@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"crypto/tls"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -18,7 +19,7 @@ import (
 )
 
 const (
-	probeRepo = "ratelimitpreview/test"
+	probeRepo = "me/grafzahl"
 
 	lOptFlag     = iota
 	lOptEnv
@@ -39,6 +40,11 @@ var (
 			Help: "The maximal pulls for this account.",
 		},
 	)
+	client = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify : true},
+		},
+	}
 )
 
 // Exporter structure
@@ -58,7 +64,7 @@ type TokenResp struct {
 // GetToken from Dockerhub
 func (e *Exporter) GetToken() error {
 	log.Info("Asking for Token")
-	tokenRequest, err := http.Get(fmt.Sprintf(
+	tokenRequest, err := client.Get(fmt.Sprintf(
 		"https://%s:%s@auth.docker.io/token?service=registry.docker.io&scope=repository:%s:pull",
 		e.Username,
 		e.Password,
@@ -90,13 +96,13 @@ func (e *Exporter) GetToken() error {
 
 // Request your Limits and Remainings
 func (e *Exporter) Request() error {
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://registry-1.docker.io/v2/%s/manifests/latest", probeRepo), nil)
+	req, err := http.NewRequest("HEAD", fmt.Sprintf("https://registry-1.docker.io/v2/%s/manifests/latest", probeRepo), nil)
 	if err != nil {
 		log.Warn("Could not connect")
 		return err
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", e.Token))
-	res, err := http.DefaultClient.Do(req)
+	res, err := client.Do(req)
 	if err != nil {
 		log.Warn("Failed to build request", err)
 		return nil
