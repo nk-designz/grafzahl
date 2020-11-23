@@ -153,7 +153,7 @@ func (e *Exporter) RenewLimitValuesEvery(n time.Duration) {
 
 // Run the Exporter
 func (e *Exporter) Run() {
-	log.Info("Starting exporter on localhost:9696/metrics")
+	log.Info("Starting exporter on localhost:6969/metrics")
 	prometheus.MustRegister(limit)
 	prometheus.MustRegister(remaining)
 	e.RenewTokenEvery(2 * time.Hour)
@@ -161,7 +161,7 @@ func (e *Exporter) Run() {
 	e.RenewLimitValuesEvery(3 * time.Second)
 	http.Handle("/metrics", promhttp.Handler())
 	log.Info("Endpoint ready")
-	log.Fatal(http.ListenAndServe(":9696", nil))
+	log.Fatal(http.ListenAndServe(":6969", nil))
 }
 
 // Init the Exporter via options
