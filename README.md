@@ -1,5 +1,5 @@
 # Grafzahl
-Monitor your Dockerhub Rate-Limits in Prometheus on Port 9696! Nice!
+Monitor your Dockerhub Rate-Limits in Prometheus on Port 6969! Nice!
 
 ## Options
 ### Flag
