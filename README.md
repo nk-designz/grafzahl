@@ -1,5 +1,6 @@
 # Grafzahl
-Small Docker Hub Rate Limits Exporter for Prometheus
+Monitor your Dockerhub Rate-Limits in Prometheus on Port 9696! Nice!
+
 ## Options
 ### Flag
 - ```--username=<username>```
