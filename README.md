@@ -1,5 +1,6 @@
-# Grafzahl
-Monitor your Dockerhub Rate-Limits in Prometheus on Port 6969! Nice!
+# Grafzahl 
+<img src="logo.png" height="50" ></img>  
+Monitor your Dockerhub Rate-Limits in Prometheus on Port 6969! Nice! 
 
 ## Options
 | Flag | Environment | Yaml |
