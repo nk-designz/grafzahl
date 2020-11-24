@@ -2,20 +2,15 @@
 Monitor your Dockerhub Rate-Limits in Prometheus on Port 6969! Nice!
 
 ## Options
-### Flag
-- ```--username=<username>```
-- ```--password=<password>```
-### Environment
-- ```GRAFZAHL_PASSWORD```
-- ```GRAFZAHL_USERNAME```
-### Yaml
-```yaml
-username: <USERNAME>
-password: <PASSWORD>
-```
-Path: ```/etc/grafzahl.yaml```/```~/grafzahl.yaml```
+| Flag | Environment | Yaml |
+| --- | --- | --- |
+| ```--username=<username>``` | ```GRAFZAHL_USERNAME``` | ```username: <USERNAME>``` |
+| ```--password=<password>``` | ```GRAFZAHL_PASSWORD``` | ```password: <PASSWORD>``` |
+
+Path: ```/etc/grafzahl.yaml``` or ```~/grafzahl.yaml```
+
 ## Metrics
-```test
+```ebnf
  HELP docker_hub_rate_limit The maximal pulls for this account.
 # TYPE docker_hub_rate_limit gauge
 docker_hub_rate_limit 0
@@ -23,6 +18,7 @@ docker_hub_rate_limit 0
 # TYPE docker_hub_rate_limit_remaining gauge
 docker_hub_rate_limit_remaining 0
 ```
+[metrics](http://localhost:9696/metrics)
 ## Run
 ### Docker
 1. Start the container
