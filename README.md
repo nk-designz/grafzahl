@@ -28,7 +28,7 @@ docker_hub_rate_limit_remaining 0
      -p 6969:6969 \
      -e "GRAFZAHL_PASSWORD=<PASSWORD>" \
      -e "GRAFZAHL_USERNAME=<USERNAME>" \
-     me/grafzahl:latest
+     me/grafzahl:1.25.3
    ```
 2. Pet nearby cat.
 ### Native
